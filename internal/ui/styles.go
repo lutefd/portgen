@@ -44,6 +44,8 @@ var (
 
 	HelpDescStyle = lipgloss.NewStyle().
 			Foreground(secondaryColor)
+	ErrorDescStyle = lipgloss.NewStyle().
+			Foreground(secondaryColor).MarginBottom(1)
 )
 
 func GetLongDescription() string {
