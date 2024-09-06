@@ -17,6 +17,7 @@ type modelState int
 const (
 	stateNormal modelState = iota
 	stateHelp
+	stateError
 )
 
 type model struct {
@@ -58,6 +59,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = stateNormal
 				return m, nil
 			}
+			if m.state == stateError {
+				m.state = stateNormal
+				m.err = nil
+				return m, nil
+			}
 			command := strings.TrimSpace(strings.ToLower(m.textInput.Value()))
 			switch command {
 			case "", "generate":
@@ -73,6 +79,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "help":
 				m.state = stateHelp
 			default:
+				m.state = stateError
 				m.err = fmt.Errorf("unknown command: %s", command)
 			}
 			m.textInput.SetValue("")
@@ -81,6 +88,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case error:
+		m.state = stateError
 		m.err = msg
 		return m, nil
 	}
@@ -90,9 +98,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	if m.err != nil {
-		return fmt.Sprintf("Error: %v\n\nPress Enter to continue", m.err)
-	}
+	// if m.err != nil {
+	// 	return fmt.Sprintf("Error: %v\n\nPress Enter to continue", m.err)
+	// }
 
 	if m.state == stateHelp {
 		return lipgloss.JoinVertical(lipgloss.Left,
@@ -106,7 +114,14 @@ func (m model) View() string {
 			InfoStyle.Render("(esc to quit)"),
 		)
 	}
-
+	if m.state == stateError {
+		return lipgloss.JoinVertical(lipgloss.Left,
+			TitleStyle.Render("Error"),
+			ErrorDescStyle.Render(m.err.Error()),
+			InfoStyle.Render("Press Enter to return to the main screen"),
+			InfoStyle.Render("(esc to quit)"),
+		)
+	}
 	var s string
 	if m.port != 0 {
 		s = PortStyle.Render(fmt.Sprintf("Generated Port: %d", m.port))

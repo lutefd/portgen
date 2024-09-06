@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -28,7 +29,7 @@ func TestModelUpdate(t *testing.T) {
 		{"Generate command", "generate", true, true, stateNormal, true, false},
 		{"Copy command", "copy", false, false, stateNormal, true, true},
 		{"Help command", "help", false, false, stateHelp, false, false},
-		{"Unknown command", "unknown", false, false, stateNormal, false, false},
+		{"Unknown command", "unknown", false, false, stateError, false, false},
 	}
 
 	for _, tt := range tests {
@@ -71,6 +72,13 @@ func TestModelUpdate(t *testing.T) {
 					t.Error("Model did not return to normal state after displaying help")
 				}
 			}
+			if tt.wantState == stateError {
+				newModel, _ = updatedModel.Update(tea.KeyMsg{Type: tea.KeyEnter})
+				finalModel := newModel.(model)
+				if finalModel.state != stateNormal {
+					t.Error("Model did not return to normal state after displaying help")
+				}
+			}
 		})
 	}
 }
@@ -89,8 +97,10 @@ func TestModelView(t *testing.T) {
 	}
 
 	m.err = &errorString{"Test error"}
+	m.state = stateError
 	errorView := m.View()
-	if !strings.Contains(errorView, "Error: Test error") {
+	if !strings.Contains(errorView, "Error") || !strings.Contains(errorView, "Test error") {
+		fmt.Println(errorView)
 		t.Error("Error view did not contain expected error message")
 	}
 }
