@@ -16,7 +16,7 @@ Portgen is a CLI tool designed to generate random unused ports within a specifie
 To install Portgen, you need to have Go installed on your system. Then, you can use the following command:
 
 ```bash
-go install github.com/Lutefd/portgen@latest
+go install github.com/Lutefd/portgen/cmd/portgen@latest
 ```
 
 Alternatively, you can clone the repository and build it manually:
