@@ -7,7 +7,7 @@ import (
 
 func TestGetLongDescription(t *testing.T) {
 	desc := GetLongDescription()
-	if !strings.Contains(desc, "Random Port Generator") {
+	if !strings.Contains(desc, "Portgen") {
 		t.Error("Long description does not contain expected text")
 	}
 }

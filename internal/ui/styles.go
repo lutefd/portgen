@@ -11,7 +11,7 @@ var (
 	backgroundColor = lipgloss.Color("#f2e9e4")
 
 	TitleStyle = lipgloss.NewStyle().
-			Foreground(primaryColor).
+			Foreground(accentColor).
 			Bold(true).
 			MarginBottom(1)
 
@@ -48,7 +48,7 @@ var (
 
 func GetLongDescription() string {
 	return lipgloss.JoinVertical(lipgloss.Left,
-		HelpHeadingStyle.Render("Random Port Generator"),
+		HelpHeadingStyle.Render("Portgen"),
 		HelpDescStyle.Render("A CLI tool to generate a random unused port within a specified range."),
 		HelpDescStyle.Render("The generated port can optionally be copied to the clipboard."),
 	)
