@@ -21,9 +21,9 @@ clean:
 	$(GOCLEAN)
 	rm -rf $(BUILD_DIR)
 
-run:
-	$(GOBUILD) -o $(BUILD_DIR)/$(BINARY_NAME) -v ./cmd/portgen
+run: build
 	./$(BUILD_DIR)/$(BINARY_NAME)
+
 
 deps:
 	$(GOGET) -v -t -d ./...
