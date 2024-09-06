@@ -16,19 +16,16 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-// clipboardWriter is an interface that allows us to mock the clipboard
 type clipboardWriter interface {
 	WriteAll(text string) error
 }
 
-// realClipboard wraps the actual clipboard package
 type realClipboard struct{}
 
 func (rc realClipboard) WriteAll(text string) error {
 	return clipboard.WriteAll(text)
 }
 
-// defaultClipboard is the clipboard implementation we'll use by default
 var defaultClipboard clipboardWriter = realClipboard{}
 
 func GeneratePort(min, max int) int {

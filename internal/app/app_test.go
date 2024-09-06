@@ -32,7 +32,6 @@ func (m *mockClipboard) WriteAll(text string) error {
 }
 
 func TestCopyToClipboard(t *testing.T) {
-	// Replace the actual clipboard with our mock
 	oldClipboard := defaultClipboard
 	mockClip := &mockClipboard{}
 	defaultClipboard = mockClip
