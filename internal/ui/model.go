@@ -3,12 +3,20 @@ package ui
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Lutefd/portgen/internal/port"
 	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+)
+
+type modelState int
+
+const (
+	stateNormal modelState = iota
+	stateHelp
 )
 
 type model struct {
@@ -18,11 +26,12 @@ type model struct {
 	port            int
 	textInput       textinput.Model
 	err             error
+	state           modelState
 }
 
 func InitialModel(minPort, maxPort int, copyToClipboard bool) model {
 	ti := textinput.New()
-	ti.Placeholder = "Press enter to generate a port"
+	ti.Placeholder = "Enter command (generate, copy, help) or press enter"
 	ti.Focus()
 
 	return model{
@@ -30,6 +39,7 @@ func InitialModel(minPort, maxPort int, copyToClipboard bool) model {
 		maxPort:         maxPort,
 		copyToClipboard: copyToClipboard,
 		textInput:       ti,
+		state:           stateNormal,
 	}
 }
 
@@ -44,10 +54,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			m.port = port.Generate(m.minPort, m.maxPort)
-			if m.copyToClipboard {
-				clipboard.WriteAll(strconv.Itoa(m.port))
+			if m.state == stateHelp {
+				m.state = stateNormal
+				return m, nil
 			}
+			command := strings.TrimSpace(strings.ToLower(m.textInput.Value()))
+			switch command {
+			case "", "generate":
+				m.port = port.Generate(m.minPort, m.maxPort)
+				if m.copyToClipboard {
+					clipboard.WriteAll(strconv.Itoa(m.port))
+				}
+			case "copy":
+				if m.port != 0 {
+					clipboard.WriteAll(strconv.Itoa(m.port))
+					m.copyToClipboard = true
+				}
+			case "help":
+				m.state = stateHelp
+			default:
+				m.err = fmt.Errorf("unknown command: %s", command)
+			}
+			m.textInput.SetValue("")
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		}
@@ -63,7 +91,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	if m.err != nil {
-		return fmt.Sprintf("Error: %v", m.err)
+		return fmt.Sprintf("Error: %v\n\nPress Enter to continue", m.err)
+	}
+
+	if m.state == stateHelp {
+		return lipgloss.JoinVertical(lipgloss.Left,
+			TitleStyle.Render("Help"),
+			HelpDescStyle.Render("Commands:"),
+			HelpCommandStyle.Render("  generate: ")+HelpDescStyle.Render("Generate a new port"),
+			HelpCommandStyle.Render("  copy:     ")+HelpDescStyle.Render("Copy the current port to clipboard"),
+			HelpCommandStyle.Render("  help:     ")+HelpDescStyle.Render("Show this help message"),
+			"",
+			InfoStyle.Render("Press Enter to return to the main screen"),
+			InfoStyle.Render("(esc to quit)"),
+		)
 	}
 
 	var s string
@@ -75,9 +116,9 @@ func (m model) View() string {
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left,
-		TitleStyle.Render("Random Port Generator"),
+		TitleStyle.Render("Portgen"),
 		InputStyle.Render(m.textInput.View()),
 		s,
-		InfoStyle.Render("(esc to quit)"),
+		InfoStyle.Render("(type 'help' for commands, esc to quit)"),
 	)
 }
