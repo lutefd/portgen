@@ -2,6 +2,8 @@
 
 Portgen is a CLI tool designed to generate random unused ports within a specified range. It was born out of the frustration of having to think of unused ports for new projects, especially when dealing with multiple running containers.
 
+![Portgen Hero](docs/assets/portgen-hero.png)
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -16,13 +18,13 @@ Portgen is a CLI tool designed to generate random unused ports within a specifie
 To install Portgen, you need to have Go installed on your system. Then, you can use the following command:
 
 ```bash
-go install github.com/Lutefd/portgen/cmd/portgen@latest
+go install github.com/lutefd/portgen/cmd/portgen@latest
 ```
 
 Alternatively, you can clone the repository and build it manually:
 
 ```bash
-git clone https://github.com/Lutefd/portgen.git
+git clone https://github.com/lutefd/portgen.git
 cd portgen
 make build
 ```
@@ -32,6 +34,8 @@ make build
 Portgen can be used in both interactive and non-interactive modes.
 
 ### Non-interactive Mode
+
+![Portgen Non-Interactive Mode](docs/assets/portgen-non-interactive-mode.gif)
 
 ```bash
 portgen [flags]
@@ -46,10 +50,13 @@ Flags:
 
 ### Interactive Mode
 
+![Portgen Interactive Mode](docs/assets/portgen-interactive-mode.gif)
+
 To enter interactive mode, simply run `portgen` without the `-s` flag. In this mode, you can use the following commands:
 
 - `generate`: Generate a new port
 - `copy`: Copy the current port to clipboard
+- `toggle`: Toggle clipboard mode on/off - useful for copying multiple ports in a row
 - `help`: Show the help message
 
 ## Project Structure
