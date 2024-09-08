@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Lutefd/portgen/internal/port"
 	"github.com/atotto/clipboard"
@@ -28,13 +29,14 @@ type model struct {
 	textInput       textinput.Model
 	err             error
 	state           modelState
+	tempMessage     string
+	tempMessageTime time.Time
 }
 
 func InitialModel(minPort, maxPort int, copyToClipboard bool) model {
 	ti := textinput.New()
-	ti.Placeholder = "Enter command (generate, copy, help) or press enter"
+	ti.Placeholder = "Enter command (generate, copy, toggle, help) or press enter"
 	ti.Focus()
-
 	return model{
 		minPort:         minPort,
 		maxPort:         maxPort,
@@ -55,11 +57,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			if m.state == stateHelp {
-				m.state = stateNormal
-				return m, nil
-			}
-			if m.state == stateError {
+			if m.state == stateHelp || m.state == stateError {
 				m.state = stateNormal
 				m.err = nil
 				return m, nil
@@ -74,8 +72,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "copy":
 				if m.port != 0 {
 					clipboard.WriteAll(strconv.Itoa(m.port))
-					m.copyToClipboard = true
+					m.tempMessage = fmt.Sprintf("Port %d copied to clipboard", m.port)
+					m.tempMessageTime = time.Now()
+					m.textInput.SetValue("")
+					return m, clearTempMessageAfter(2 * time.Second)
 				}
+			case "toggle":
+				m.copyToClipboard = !m.copyToClipboard
 			case "help":
 				m.state = stateHelp
 			default:
@@ -86,11 +89,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		}
-
 	case error:
 		m.state = stateError
 		m.err = msg
 		return m, nil
+	case clearTempMessageMsg:
+		m.tempMessage = ""
 	}
 
 	m.textInput, cmd = m.textInput.Update(msg)
@@ -98,16 +102,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	// if m.err != nil {
-	// 	return fmt.Sprintf("Error: %v\n\nPress Enter to continue", m.err)
-	// }
-
 	if m.state == stateHelp {
 		return lipgloss.JoinVertical(lipgloss.Left,
 			TitleStyle.Render("Help"),
 			HelpDescStyle.Render("Commands:"),
 			HelpCommandStyle.Render("  generate: ")+HelpDescStyle.Render("Generate a new port"),
 			HelpCommandStyle.Render("  copy:     ")+HelpDescStyle.Render("Copy the current port to clipboard"),
+			HelpCommandStyle.Render("  toggle:   ")+HelpDescStyle.Render("Toggle clipboard mode"),
 			HelpCommandStyle.Render("  help:     ")+HelpDescStyle.Render("Show this help message"),
 			"",
 			InfoStyle.Render("Press Enter to return to the main screen"),
@@ -122,18 +123,49 @@ func (m model) View() string {
 			InfoStyle.Render("(esc to quit)"),
 		)
 	}
+
+	clipboardStatus := fmt.Sprintf(" [Clipboard: %s]", onOffText(m.copyToClipboard))
+	clipboardStatusStyled := ClipboardStatusStyle.Render(clipboardStatus)
+	if m.copyToClipboard {
+		clipboardStatusStyled = ClipboardOnStyle.Render(clipboardStatus)
+	} else {
+		clipboardStatusStyled = ClipboardOffStyle.Render(clipboardStatus)
+	}
+
+	title := lipgloss.JoinHorizontal(lipgloss.Center,
+		TitleStyle.Render("Portgen"),
+		lipgloss.NewStyle().MarginLeft(1).Render("—"),
+		clipboardStatusStyled,
+	)
+
 	var s string
 	if m.port != 0 {
 		s = PortStyle.Render(fmt.Sprintf("Generated Port: %d", m.port))
-		if m.copyToClipboard {
-			s += "\n" + InfoStyle.Render("(Copied to clipboard)")
-		}
+	}
+
+	if m.tempMessage != "" {
+		s += "\n" + TempMessageStyle.Render(m.tempMessage)
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left,
-		TitleStyle.Render("Portgen"),
+		title,
 		InputStyle.Render(m.textInput.View()),
 		s,
 		InfoStyle.Render("(type 'help' for commands, esc to quit)"),
 	)
+}
+
+func onOffText(b bool) string {
+	if b {
+		return "ON"
+	}
+	return "OFF"
+}
+
+type clearTempMessageMsg struct{}
+
+func clearTempMessageAfter(d time.Duration) tea.Cmd {
+	return tea.Tick(d, func(t time.Time) tea.Msg {
+		return clearTempMessageMsg{}
+	})
 }

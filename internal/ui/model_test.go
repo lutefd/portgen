@@ -17,19 +17,21 @@ func TestInitialModel(t *testing.T) {
 
 func TestModelUpdate(t *testing.T) {
 	tests := []struct {
-		name           string
-		input          string
-		initialCopy    bool
-		wantPort       bool
-		wantState      modelState
-		wantCopy       bool
-		wantCopyChange bool
+		name            string
+		input           string
+		initialCopy     bool
+		wantPort        bool
+		wantState       modelState
+		wantCopy        bool
+		wantCopyChange  bool
+		wantTempMessage bool
 	}{
-		{"Generate (empty input)", "", true, true, stateNormal, true, false},
-		{"Generate command", "generate", true, true, stateNormal, true, false},
-		{"Copy command", "copy", false, false, stateNormal, true, true},
-		{"Help command", "help", false, false, stateHelp, false, false},
-		{"Unknown command", "unknown", false, false, stateError, false, false},
+		{"Generate (empty input)", "", true, true, stateNormal, true, false, false},
+		{"Generate command", "generate", true, true, stateNormal, true, false, false},
+		{"Copy command", "copy", false, false, stateNormal, false, false, true},
+		{"Toggle command", "toggle", false, false, stateNormal, true, true, false},
+		{"Help command", "help", false, false, stateHelp, false, false, false},
+		{"Unknown command", "unknown", false, false, stateError, false, false, false},
 	}
 
 	for _, tt := range tests {
@@ -61,23 +63,28 @@ func TestModelUpdate(t *testing.T) {
 				t.Error("Copy to clipboard flag did not change when expected")
 			}
 
+			if tt.wantTempMessage && updatedModel.tempMessage == "" {
+				t.Error("Temporary message not set when expected")
+			}
+
+			if !tt.wantTempMessage && updatedModel.tempMessage != "" {
+				t.Error("Temporary message set when not expected")
+			}
+
 			if tt.input == "unknown" && updatedModel.err == nil {
 				t.Error("Model did not set error for unknown command")
 			}
 
-			if tt.wantState == stateHelp {
+			if tt.wantState == stateHelp || tt.wantState == stateError {
 				newModel, _ = updatedModel.Update(tea.KeyMsg{Type: tea.KeyEnter})
 				finalModel := newModel.(model)
 				if finalModel.state != stateNormal {
-					t.Error("Model did not return to normal state after displaying help")
+					t.Error("Model did not return to normal state after displaying help or error")
 				}
 			}
-			if tt.wantState == stateError {
-				newModel, _ = updatedModel.Update(tea.KeyMsg{Type: tea.KeyEnter})
-				finalModel := newModel.(model)
-				if finalModel.state != stateNormal {
-					t.Error("Model did not return to normal state after displaying help")
-				}
+
+			if updatedModel.textInput.Value() != "" {
+				t.Error("Input not cleared after command execution")
 			}
 		})
 	}
@@ -102,6 +109,39 @@ func TestModelView(t *testing.T) {
 	if !strings.Contains(errorView, "Error") || !strings.Contains(errorView, "Test error") {
 		fmt.Println(errorView)
 		t.Error("Error view did not contain expected error message")
+	}
+}
+func TestTempMessage(t *testing.T) {
+	m := InitialModel(10000, 20000, false)
+	m.port = 12345
+
+	m.textInput.SetValue("copy")
+	newModel, _ := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	updatedModel := newModel.(model)
+
+	if updatedModel.tempMessage == "" {
+		t.Error("Temporary message not set after copy command")
+	}
+
+	if !strings.Contains(updatedModel.tempMessage, "12345") {
+		t.Error("Temporary message does not contain the copied port number")
+	}
+
+	view := updatedModel.View()
+	if !strings.Contains(view, updatedModel.tempMessage) {
+		t.Error("View does not contain the temporary message")
+	}
+
+	clearedModel, _ := updatedModel.Update(clearTempMessageMsg{})
+	updatedClearedModel := clearedModel.(model)
+
+	if updatedClearedModel.tempMessage != "" {
+		t.Error("Temporary message not cleared")
+	}
+
+	clearedView := updatedClearedModel.View()
+	if strings.Contains(clearedView, "copied to clipboard") {
+		t.Error("View still contains the temporary message after clearing")
 	}
 }
 
