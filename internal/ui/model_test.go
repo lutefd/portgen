@@ -29,7 +29,9 @@ func TestModelUpdate(t *testing.T) {
 		{"Generate (empty input)", "", true, true, stateNormal, true, false, false},
 		{"Generate command", "generate", true, true, stateNormal, true, false, false},
 		{"Copy command", "copy", false, false, stateNormal, false, false, true},
+		{"Copy command shortcut", "c", false, false, stateNormal, false, false, true},
 		{"Toggle command", "toggle", false, false, stateNormal, true, true, false},
+		{"Toggle command shortcut", "t", false, false, stateNormal, true, true, false},
 		{"Help command", "help", false, false, stateHelp, false, false, false},
 		{"Unknown command", "unknown", false, false, stateError, false, false, false},
 	}

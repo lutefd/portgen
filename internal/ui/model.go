@@ -77,7 +77,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.textInput.SetValue("")
 					return m, clearTempMessageAfter(2 * time.Second)
 				}
+			case "c":
+				if m.port != 0 {
+					clipboard.WriteAll(strconv.Itoa(m.port))
+					m.tempMessage = fmt.Sprintf("Port %d copied to clipboard", m.port)
+					m.tempMessageTime = time.Now()
+					m.textInput.SetValue("")
+					return m, clearTempMessageAfter(2 * time.Second)
+				}
 			case "toggle":
+				m.copyToClipboard = !m.copyToClipboard
+			case "t":
 				m.copyToClipboard = !m.copyToClipboard
 			case "help":
 				m.state = stateHelp
@@ -107,8 +117,8 @@ func (m model) View() string {
 			TitleStyle.Render("Help"),
 			HelpDescStyle.Render("Commands:"),
 			HelpCommandStyle.Render("  generate: ")+HelpDescStyle.Render("Generate a new port"),
-			HelpCommandStyle.Render("  copy:     ")+HelpDescStyle.Render("Copy the current port to clipboard"),
-			HelpCommandStyle.Render("  toggle:   ")+HelpDescStyle.Render("Toggle clipboard mode"),
+			HelpCommandStyle.Render("  copy:     ")+HelpDescStyle.Render("Copy the current port to clipboard, you can also use 'c'"),
+			HelpCommandStyle.Render("  toggle:   ")+HelpDescStyle.Render("Toggle clipboard mode, you can also use 't'"),
 			HelpCommandStyle.Render("  help:     ")+HelpDescStyle.Render("Show this help message"),
 			"",
 			InfoStyle.Render("Press Enter to return to the main screen"),
