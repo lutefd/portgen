@@ -9,14 +9,18 @@ var (
 	secondaryColor  = lipgloss.Color("#9a8c98")
 	accentColor     = lipgloss.Color("#c9ada7")
 	backgroundColor = lipgloss.Color("#f2e9e4")
+	successColor    = lipgloss.Color("#2ecc71")
+	offColor        = lipgloss.Color("#e74c3c")
 
 	TitleStyle = lipgloss.NewStyle().
 			Foreground(accentColor).
-			Bold(true).
-			MarginBottom(1)
+			Bold(true)
+	ClipboardStatusStyle = lipgloss.NewStyle().
+				Foreground(secondaryColor).
+				Italic(true)
 
 	InputStyle = lipgloss.NewStyle().
-			Foreground(secondaryColor)
+			Foreground(secondaryColor).MarginTop(1)
 
 	PortStyle = lipgloss.NewStyle().
 			Foreground(accentColor).
@@ -46,6 +50,16 @@ var (
 			Foreground(secondaryColor)
 	ErrorDescStyle = lipgloss.NewStyle().
 			Foreground(secondaryColor).MarginBottom(1)
+	TempMessageStyle = lipgloss.NewStyle().
+				Foreground(successColor).
+				Bold(true)
+	ClipboardOnStyle = lipgloss.NewStyle().
+				Foreground(successColor).
+				Bold(true)
+
+	ClipboardOffStyle = lipgloss.NewStyle().
+				Foreground(offColor).
+				Bold(true)
 )
 
 func GetLongDescription() string {
