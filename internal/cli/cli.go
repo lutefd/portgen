@@ -3,8 +3,8 @@ package cli
 import (
 	"fmt"
 
-	"github.com/Lutefd/portgen/internal/app"
-	"github.com/Lutefd/portgen/internal/ui"
+	"github.com/lutefd/portgen/internal/app"
+	"github.com/lutefd/portgen/internal/ui"
 	"github.com/spf13/cobra"
 )
 

@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lutefd/portgen/internal/port"
 	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lutefd/portgen/internal/port"
 )
 
 type modelState int

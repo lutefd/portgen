@@ -1,4 +1,4 @@
-module github.com/Lutefd/portgen
+module github.com/lutefd/portgen
 
 go 1.23.0
 

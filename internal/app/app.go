@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Lutefd/portgen/internal/ui"
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/lutefd/portgen/internal/ui"
 )
 
 func init() {

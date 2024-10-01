@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Lutefd/portgen/internal/cli"
+	"github.com/lutefd/portgen/internal/cli"
 )
 
 func main() {
